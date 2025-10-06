@@ -1,3 +1,45 @@
+# Minimal Password Manager (Next.js + MongoDB)
+
+Privacy-focused, client-side encrypted password manager.
+
+## Features
+- Client-side encryption using PBKDF2 (SHA-256, 210k iters) and AES-GCM 256-bit
+- Register/Login with email + password, session via HttpOnly cookie (JWT HS256)
+- Create, view, delete vault items (title, username, password, URL, notes, tags)
+- Strong password generator with look-alike exclusion
+- Copy to clipboard with auto-clear after 15s
+- Minimal UI, Tailwind, dark mode
+
+## Crypto design
+- Master password never leaves the browser.
+- PBKDF2 with per-user salt (from server), derives AES-GCM key client-side.
+- Each field encrypted with fresh 12-byte IV using WebCrypto `AES-GCM`.
+- Server stores only ciphertext (ivB64, ctB64). No plaintext stored or logged.
+
+## Tech
+- Next.js App Router, React 19, TypeScript
+- MongoDB with Mongoose
+- jose for JWT, bcryptjs for password hashes
+
+## Setup
+1. Copy env and fill values:
+   ```bash
+   cp .env.local.example .env.local
+   ```
+2. Install and run:
+   ```bash
+   pnpm install
+   pnpm dev
+   ```
+3. Open http://localhost:3000
+
+## Deployment
+- Vercel recommended. Add env vars `MONGODB_URI`, `MONGODB_DB`, `JWT_SECRET` in project settings.
+
+## Notes
+- Searching/filtering of secret fields is client-side after decryption. Server can filter plaintext tags only.
+- Consider enabling 2FA (TOTP) and encrypted export/import as future work.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
