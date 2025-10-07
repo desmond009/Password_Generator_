@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { connectToDatabase } from "@/src/lib/db";
-import User from "@/src/models/User";
-import { loginSchema } from "@/src/lib/validators";
-import { createSessionJwt, setSessionCookie } from "@/src/lib/auth";
+import { connectToDatabase } from "@/lib/db";
+import User from "@/models/User";
+import { loginSchema } from "@/lib/validators";
+import { createSessionJwt, setSessionCookie } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   await connectToDatabase();

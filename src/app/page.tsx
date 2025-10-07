@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { postJson, getJson, copyWithAutoClear } from "@/src/lib/client";
-import { deriveAesKey, aesGcmEncrypt, aesGcmDecrypt } from "@/src/lib/crypto";
-import { generatePassword } from "@/src/lib/passwordGen";
+import { postJson, getJson, copyWithAutoClear } from "@/lib/client";
+import { deriveAesKey, aesGcmEncrypt, aesGcmDecrypt } from "@/lib/crypto";
+import { generatePassword } from "@/lib/passwordGen";
 
 type UserInfo = { user: { id: string; email: string; kdfSaltB64: string } | null };
 

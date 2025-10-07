@@ -40,7 +40,7 @@ export async function setSessionCookie(token: string, maxAgeSeconds: number): Pr
     httpOnly: true,
     path: "/",
     sameSite: "lax",
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     maxAge: maxAgeSeconds,
   });
 }

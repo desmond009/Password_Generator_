@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readSession } from "@/src/lib/auth";
-import { connectToDatabase } from "@/src/lib/db";
-import VaultItem from "@/src/models/VaultItem";
-import { vaultItemSchema } from "@/src/lib/validators";
+import { readSession } from "@/lib/auth";
+import { connectToDatabase } from "@/lib/db";
+import VaultItem from "@/models/VaultItem";
+import { vaultItemSchema } from "@/lib/validators";
 
 export async function GET(req: NextRequest) {
   const session = await readSession();
