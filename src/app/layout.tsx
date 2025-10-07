@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import HeaderClient from "@/components/HeaderClient";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,10 +24,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-black text-black dark:text-white`}
       >
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var t=localStorage.getItem('theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark', d);}catch(e){}})();",
+          }}
+        />
+        <div className="sticky top-0 z-10 backdrop-blur supports-[backdrop-filter]:bg-white/50 dark:supports-[backdrop-filter]:bg-black/30 border-b border-neutral-200 dark:border-neutral-800">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between">
+            <div className="font-semibold text-sm">Minimal Password Manager</div>
+            <HeaderClient />
+          </div>
+        </div>
         {children}
       </body>
     </html>

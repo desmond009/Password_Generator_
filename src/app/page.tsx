@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { postJson, getJson, copyWithAutoClear } from "@/lib/client";
 import { deriveAesKey, aesGcmEncrypt, aesGcmDecrypt } from "@/lib/crypto";
 import { generatePassword } from "@/lib/passwordGen";
+import ThemeToggle from "@/components/ThemeToggle";
 
 type UserInfo = { user: { id: string; email: string; kdfSaltB64: string } | null };
 
@@ -118,29 +119,38 @@ export default function Home() {
 
   if (mode !== "vault") {
     return (
-      <div className="max-w-md mx-auto p-6 space-y-3">
-        <h1 className="text-2xl font-bold text-center">Minimal Password Manager</h1>
-        <div className="flex gap-2 justify-center text-sm">
-          <button className={`px-3 py-1 rounded ${mode==='login'?'bg-black text-white':'border'}`} onClick={() => setMode('login')}>Login</button>
-          <button className={`px-3 py-1 rounded ${mode==='register'?'bg-black text-white':'border'}`} onClick={() => setMode('register')}>Register</button>
+      <div className="max-w-md mx-auto p-6">
+        <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-6 shadow-sm bg-white dark:bg-neutral-900">
+          <div className="flex gap-2 justify-center text-sm mb-4">
+            <button className={`px-3 py-1 rounded ${mode==='login'?'bg-black text-white':'border'}`} onClick={() => setMode('login')}>Login</button>
+            <button className={`px-3 py-1 rounded ${mode==='register'?'bg-black text-white':'border'}`} onClick={() => setMode('register')}>Register</button>
+          </div>
+          <div className="space-y-3">
+            <input className="w-full border rounded px-3 py-2" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
+            <input className="w-full border rounded px-3 py-2" type="password" placeholder="Master password" value={password} onChange={e=>setPassword(e.target.value)} />
+            {error && <div className="text-red-600 text-sm">{error}</div>}
+            <button className="w-full bg-black text-white py-2 rounded hover:opacity-90" onClick={mode==='login'?handleLogin:handleRegister}>{mode==='login'?'Login':'Create account'}</button>
+            <p className="text-xs text-neutral-500 text-center">Vault encryption happens in your browser. Server never sees plaintext.</p>
+          </div>
         </div>
-        <input className="w-full border rounded px-3 py-2" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
-        <input className="w-full border rounded px-3 py-2" type="password" placeholder="Master password" value={password} onChange={e=>setPassword(e.target.value)} />
-        {error && <div className="text-red-600 text-sm">{error}</div>}
-        <button className="w-full bg-black text-white py-2 rounded" onClick={mode==='login'?handleLogin:handleRegister}>{mode==='login'?'Login':'Create account'}</button>
-        <p className="text-xs text-neutral-500 text-center">Vault encryption happens in your browser. Server never sees plaintext.</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Vault</h1>
-        <input className="border rounded px-2 py-1" placeholder="Filter tags (server-side)" value={filter} onChange={e=>setFilter(e.target.value)} />
+    <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold">Vault</h1>
+          <button className="text-sm underline" onClick={async()=>{await postJson('/api/auth/logout',{}); location.reload();}}>Logout</button>
+        </div>
+        <div className="flex items-center gap-2">
+          <input className="border rounded px-2 py-1 w-56" placeholder="Filter tags (server-side)" value={filter} onChange={e=>setFilter(e.target.value)} />
+          <ThemeToggle />
+        </div>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         <input className="border rounded px-2 py-1" placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)} />
         <input className="border rounded px-2 py-1" placeholder="Username" value={username} onChange={e=>setUsername(e.target.value)} />
         <div className="flex gap-2">
@@ -148,12 +158,12 @@ export default function Home() {
           <button className="border rounded px-2" onClick={genStrong}>Gen</button>
         </div>
         <input className="border rounded px-2 py-1" placeholder="URL" value={url} onChange={e=>setUrl(e.target.value)} />
-        <input className="border rounded px-2 py-1 sm:col-span-2" placeholder="Notes" value={notes} onChange={e=>setNotes(e.target.value)} />
+        <textarea className="border rounded px-2 py-1 sm:col-span-2 min-h-[72px]" placeholder="Notes" value={notes} onChange={e=>setNotes(e.target.value)} />
         <input className="border rounded px-2 py-1 sm:col-span-2" placeholder="Tags (comma separated)" value={tags} onChange={e=>setTags(e.target.value)} />
-        <button className="bg-black text-white py-2 rounded sm:col-span-2" onClick={addItem}>Add</button>
+        <button className="bg-black text-white py-2 rounded sm:col-span-2 hover:opacity-90 transition" onClick={addItem}>Add</button>
       </div>
 
-      <div className="divide-y border rounded">
+      <div className="grid gap-3 sm:grid-cols-2">
         {filtered.map((it) => (
           <VaultRow key={it._id} item={it} onChanged={loadItems} copyWithAutoClear={copyWithAutoClear} decrypt={decryptField} />
         ))}
@@ -186,8 +196,8 @@ function VaultRow({ item, onChanged, decrypt, copyWithAutoClear }: { item: any; 
   }
 
   return (
-    <div className="p-3 space-y-2">
-      <div className="flex items-center justify-between">
+    <div className="p-4 border rounded-lg bg-white/5 dark:bg-white/5">
+      <div className="flex items-center justify-between mb-2">
         <div className="font-medium truncate max-w-[60%]">{title || "(no title)"}</div>
         <div className="flex gap-2">
           <button className="text-sm underline" onClick={() => setExpanded(v=>!v)}>{expanded?"Hide":"Show"}</button>
@@ -195,11 +205,11 @@ function VaultRow({ item, onChanged, decrypt, copyWithAutoClear }: { item: any; 
         </div>
       </div>
       {expanded && (
-        <div className="grid gap-2 sm:grid-cols-2">
-          <div className="text-sm">User: {username}</div>
-          <div className="text-sm flex items-center gap-2">Pass: <input className="border rounded px-2 py-0.5" value={password} onChange={e=>setPassword(e.target.value)} /> <button className="border rounded px-2 py-0.5" onClick={()=>copyWithAutoClear(password)}>Copy</button></div>
-          <div className="text-sm">URL: {url}</div>
-          <div className="text-sm sm:col-span-2">Notes: {notes}</div>
+        <div className="grid gap-2 text-sm">
+          <div>User: {username}</div>
+          <div className="flex items-center gap-2">Pass: <input className="border rounded px-2 py-0.5" value={password} onChange={e=>setPassword(e.target.value)} /> <button className="border rounded px-2 py-0.5" onClick={()=>copyWithAutoClear(password)}>Copy</button></div>
+          <div>URL: {url}</div>
+          <div>Notes: {notes}</div>
         </div>
       )}
     </div>
