@@ -2,6 +2,9 @@
 
 Privacy-focused, client-side encrypted password manager.
 
+## Live Demo
+- Production: https://password-generator-l7xl.vercel.app
+
 ## Features
 - Client-side encryption using PBKDF2 (SHA-256, 210k iters) and AES-GCM 256-bit
 - Register/Login with email + password, session via HttpOnly cookie (JWT HS256)
