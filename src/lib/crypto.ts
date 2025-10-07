@@ -16,7 +16,8 @@ export async function importPasswordKey(password: string): Promise<CryptoKey> {
 
 export async function deriveAesKey(password: string, saltB64: string, iterations = 210000): Promise<CryptoKey> {
   const baseKey = await importPasswordKey(password);
-  const salt = Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
+  const saltBytes = Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
+  const salt = saltBytes.buffer as ArrayBuffer; // satisfy TS DOM BufferSource typing
   return crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
@@ -55,8 +56,10 @@ export async function aesGcmEncrypt(aesKey: CryptoKey, plaintext: string): Promi
 }
 
 export async function aesGcmDecrypt(aesKey: CryptoKey, ivB64: string, ctB64: string): Promise<string> {
-  const iv = fromBase64(ivB64);
-  const ct = fromBase64(ctB64);
+  const ivBytes = fromBase64(ivB64);
+  const ctBytes = fromBase64(ctB64);
+  const iv = ivBytes.buffer as ArrayBuffer;
+  const ct = ctBytes.buffer as ArrayBuffer;
   const pt = await crypto.subtle.decrypt(
     { name: "AES-GCM", iv },
     aesKey,
