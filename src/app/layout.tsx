@@ -35,9 +35,10 @@ export default function RootLayout({
           }}
         />
         <div className="sticky top-0 z-10 backdrop-blur supports-[backdrop-filter]:bg-white/50 dark:supports-[backdrop-filter]:bg-black/30 border-b border-neutral-200 dark:border-neutral-800">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between">
-            <div className="font-semibold text-sm">Minimal Password Manager</div>
-            <HeaderClient />
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 h-12 grid items-center" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
+            <div />
+            <div className="font-semibold text-sm text-center">Minimal Password Manager</div>
+            <div className="justify-self-end"><HeaderClient /></div>
           </div>
         </div>
         {children}
