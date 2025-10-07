@@ -45,8 +45,9 @@ export default function Home() {
       const me = await getJson<UserInfo>("/api/auth/me");
       setUser(me.user);
       setMode("vault");
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Login failed";
+      setError(msg);
     }
   }
 
@@ -57,8 +58,9 @@ export default function Home() {
       const me = await getJson<UserInfo>("/api/auth/me");
       setUser(me.user);
       setMode("vault");
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Register failed";
+      setError(msg);
     }
   }
 
@@ -75,7 +77,7 @@ export default function Home() {
   async function loadItems(tag?: string) {
     const qs = tag ? `?tag=${encodeURIComponent(tag)}` : "";
     const res = await getJson<{ items: VaultItem[] }>(`/api/vault${qs}`);
-    setItems(res.items as any);
+    setItems(res.items);
   }
 
   useEffect(() => {

@@ -9,9 +9,8 @@ export async function GET(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   await connectToDatabase();
   const { searchParams } = new URL(req.url);
-  const q = searchParams.get("q");
   const tag = searchParams.get("tag");
-  const filter: any = { userId: session.userId };
+  const filter: Record<string, unknown> = { userId: session.userId };
   if (tag) filter.tags = tag;
   const items = await VaultItem.find(filter).sort({ updatedAt: -1 }).lean();
   // searching is client-side (decrypt), but allow basic plaintext tag filter here
