@@ -9,8 +9,12 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
     cache: 'no-store',
   });
   if (!res.ok) {
-    const msg = (await res.json().catch(() => ({}))) as any;
-    throw new Error(msg?.error || `Request failed: ${res.status}`);
+    type ErrorBody = { error?: string } | Record<string, unknown> | null;
+    const msg: ErrorBody = await res.json().catch(() => null);
+    const message = (msg && typeof msg === 'object' && 'error' in msg && typeof (msg as { error?: string }).error === 'string')
+      ? (msg as { error?: string }).error
+      : `Request failed: ${res.status}`;
+    throw new Error(message);
   }
   return (await res.json()) as T;
 }

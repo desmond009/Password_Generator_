@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { postJson, getJson, copyWithAutoClear } from "@/lib/client";
 import { deriveAesKey, aesGcmEncrypt, aesGcmDecrypt } from "@/lib/crypto";
 import { generatePassword } from "@/lib/passwordGen";
+import type { VaultItemInput } from "@/lib/validators";
 
 type UserInfo = { user: { id: string; email: string; kdfSaltB64: string } | null };
 
@@ -81,7 +82,7 @@ export default function Home() {
   }
 
   useEffect(() => {
-    if (mode === "vault" && user) loadItems(filter.trim() || undefined);
+    if (mode === "vault" && user) loadItems();
   }, [mode, user]);
 
   useEffect(() => {
@@ -101,7 +102,7 @@ export default function Home() {
 
   async function addItem() {
     if (!aesKey) return;
-    const payload: any = {
+    const payload: VaultItemInput = {
       title: title ? await aesGcmEncrypt(aesKey, title) : undefined,
       username: username ? await aesGcmEncrypt(aesKey, username) : undefined,
       password: pw ? await aesGcmEncrypt(aesKey, pw) : undefined,
@@ -114,14 +115,14 @@ export default function Home() {
     await loadItems();
   }
 
-  async function decryptField(field?: EncField): Promise<string> {
+  const decryptField = useCallback(async function decryptField(field?: EncField): Promise<string> {
     if (!field || !aesKey) return "";
     return aesGcmDecrypt(aesKey, field.ivB64, field.ctB64);
-  }
+  }, [aesKey]);
 
   const filtered = useMemo(() => {
     return items;
-  }, [items, filter]);
+  }, [items]);
 
   function genStrong() {
     const g = generatePassword({ length: 16, lowercase: true, uppercase: true, numbers: true, symbols: true, excludeLookalike: true });
@@ -187,7 +188,7 @@ export default function Home() {
   );
 }
 
-function VaultRow({ item, onChanged, decrypt, onCopyPassword }: { item: any; onChanged: () => Promise<void>; decrypt: (f?: EncField) => Promise<string>; onCopyPassword: (t: string) => Promise<void>; }) {
+function VaultRow({ item, onChanged, decrypt, onCopyPassword }: { item: VaultItem; onChanged: () => Promise<void>; decrypt: (f?: EncField) => Promise<string>; onCopyPassword: (t: string) => Promise<void>; }) {
   const [title, setTitle] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -203,7 +204,7 @@ function VaultRow({ item, onChanged, decrypt, onCopyPassword }: { item: any; onC
       setUrl(await decrypt(item.url));
       setNotes(await decrypt(item.notes));
     })();
-  }, [item]);
+  }, [item, decrypt]);
 
   async function remove() {
     await fetch(`/api/vault?id=${item._id}`, { method: 'DELETE' });
