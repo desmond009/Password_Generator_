@@ -1,7 +1,5 @@
 "use client";
 
-import ThemeToggle from "@/components/ThemeToggle";
-
 export default function HeaderClient() {
 	async function logout() {
 		try {
@@ -11,8 +9,7 @@ export default function HeaderClient() {
 	}
 	return (
 		<div className="flex items-center gap-2">
-			<button onClick={logout} className="text-sm underline hidden sm:inline">Logout</button>
-			<ThemeToggle />
+			<button onClick={logout} className="text-sm underline">Logout</button>
 		</div>
 	);
 }

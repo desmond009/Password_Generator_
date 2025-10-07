@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { postJson, getJson, copyWithAutoClear } from "@/lib/client";
 import { deriveAesKey, aesGcmEncrypt, aesGcmDecrypt } from "@/lib/crypto";
 import { generatePassword } from "@/lib/passwordGen";
-import ThemeToggle from "@/components/ThemeToggle";
 
 type UserInfo = { user: { id: string; email: string; kdfSaltB64: string } | null };
 
@@ -28,6 +27,7 @@ export default function Home() {
   const [aesKey, setAesKey] = useState<CryptoKey | null>(null);
   const [items, setItems] = useState<VaultItem[]>([]);
   const [filter, setFilter] = useState("");
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     getJson<UserInfo>("/api/auth/me").then(async (u) => {
@@ -72,14 +72,23 @@ export default function Home() {
     setupKey();
   }, [user, password]);
 
-  async function loadItems() {
-    const res = await getJson<{ items: VaultItem[] }>("/api/vault");
+  async function loadItems(tag?: string) {
+    const qs = tag ? `?tag=${encodeURIComponent(tag)}` : "";
+    const res = await getJson<{ items: VaultItem[] }>(`/api/vault${qs}`);
     setItems(res.items as any);
   }
 
   useEffect(() => {
-    if (mode === "vault" && user) loadItems();
+    if (mode === "vault" && user) loadItems(filter.trim() || undefined);
   }, [mode, user]);
+
+  useEffect(() => {
+    if (mode !== "vault" || !user) return;
+    const h = setTimeout(() => {
+      loadItems(filter.trim() || undefined);
+    }, 300);
+    return () => clearTimeout(h);
+  }, [filter, mode, user]);
 
   const [title, setTitle] = useState("");
   const [username, setUsername] = useState("");
@@ -142,11 +151,9 @@ export default function Home() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold">Vault</h1>
-          <button className="text-sm underline" onClick={async()=>{await postJson('/api/auth/logout',{}); location.reload();}}>Logout</button>
         </div>
         <div className="flex items-center gap-2">
-          <input className="border rounded px-2 py-1 w-56" placeholder="Filter tags (server-side)" value={filter} onChange={e=>setFilter(e.target.value)} />
-          <ThemeToggle />
+          <input className="border rounded px-2 py-1 w-56" placeholder="Filter tag" value={filter} onChange={e=>setFilter(e.target.value)} />
         </div>
       </div>
 
@@ -165,14 +172,20 @@ export default function Home() {
 
       <div className="grid gap-3 sm:grid-cols-2">
         {filtered.map((it) => (
-          <VaultRow key={it._id} item={it} onChanged={loadItems} copyWithAutoClear={copyWithAutoClear} decrypt={decryptField} />
+          <VaultRow key={it._id} item={it} onChanged={() => loadItems(filter.trim() || undefined)} onCopyPassword={async (text: string) => { await copyWithAutoClear(text); setToast("Password copied"); setTimeout(()=>setToast(null), 1500); }} decrypt={decryptField} />
         ))}
       </div>
+
+      {toast && (
+        <div className="fixed left-1/2 -translate-x-1/2 bottom-6 px-3 py-2 rounded bg-black text-white text-sm shadow">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
 
-function VaultRow({ item, onChanged, decrypt, copyWithAutoClear }: { item: any; onChanged: () => Promise<void>; decrypt: (f?: EncField) => Promise<string>; copyWithAutoClear: (t: string, ms?: number) => Promise<void>; }) {
+function VaultRow({ item, onChanged, decrypt, onCopyPassword }: { item: any; onChanged: () => Promise<void>; decrypt: (f?: EncField) => Promise<string>; onCopyPassword: (t: string) => Promise<void>; }) {
   const [title, setTitle] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -207,7 +220,7 @@ function VaultRow({ item, onChanged, decrypt, copyWithAutoClear }: { item: any; 
       {expanded && (
         <div className="grid gap-2 text-sm">
           <div>User: {username}</div>
-          <div className="flex items-center gap-2">Pass: <input className="border rounded px-2 py-0.5" value={password} onChange={e=>setPassword(e.target.value)} /> <button className="border rounded px-2 py-0.5" onClick={()=>copyWithAutoClear(password)}>Copy</button></div>
+          <div className="flex items-center gap-2">Pass: <input className="border rounded px-2 py-0.5" value={password} onChange={e=>setPassword(e.target.value)} /> <button className="border rounded px-2 py-0.5" onClick={()=>onCopyPassword(password)}>Copy</button></div>
           <div>URL: {url}</div>
           <div>Notes: {notes}</div>
         </div>

@@ -14,14 +14,22 @@ export default function ThemeToggle() {
     const stored = localStorage.getItem("theme");
     const initial = stored === "light" || stored === "dark" ? (stored as "light" | "dark") : (getSystemPrefersDark() ? "dark" : "light");
     setTheme(initial);
-    document.documentElement.classList.toggle("dark", initial === "dark");
+    if (initial === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   }, []);
 
   function toggle() {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
     localStorage.setItem("theme", next);
-    document.documentElement.classList.toggle("dark", next === "dark");
+    if (next === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   }
 
   return (
